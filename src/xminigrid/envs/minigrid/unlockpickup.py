@@ -12,19 +12,19 @@ from ...types import AgentState, EnvCarry, State
 _allowed_colors = jnp.array(
     (
         Colors.CYAN,
-        Colors.MAGENTA,
-        Colors.LIME,
-        Colors.TEAL,
-        Colors.MAROON,
+        # Colors.MAGENTA,
+        # Colors.LIME,
+        # Colors.TEAL,
+        # Colors.MAROON,
     )
 )
 _allowed_entities = jnp.array(
     (
-        Tiles.DIAMOND,
-        Tiles.PARALLELOGRAM,
-        Tiles.PENTAGON,
+        # Tiles.DIAMOND,
+        # Tiles.PARALLELOGRAM,
+        # Tiles.PENTAGON,
         Tiles.CROSS,
-        Tiles.TRAPEZOID,
+        # Tiles.TRAPEZOID,
     )
 )
 _rule_encoding = EmptyRule().encode()[None, ...]

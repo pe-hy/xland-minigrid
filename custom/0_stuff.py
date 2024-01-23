@@ -35,28 +35,33 @@ def build_rollout(env, env_params, num_steps):
 
     return rollout
 
+def print_size(x):
+    print(len(x))
 
 env, env_params = xminigrid.make("MiniGrid-UnlockPickUp")
 # do not forget to use auto reset wrapper!
 env = GymAutoResetWrapper(env)
 
 # jiting the entire rollout
-rollout_fn = jax.jit(build_rollout(env, env_params, num_steps=1000))
+#rollout_fn = jax.jit(build_rollout(env, env_params, num_steps=1000))
 
 # first execution will compile
-transitions = rollout_fn(jax.random.PRNGKey(0))
+#transitions = rollout_fn(jax.random.PRNGKey(0))
+#timestep = jtu.tree_map(print_size, transitions)
 
-# vmap_rollout = jax.jit(jax.vmap(build_rollout(env, env_params, num_steps=1000)))
-# rngs = jax.random.split(jax.random.PRNGKey(0), num=1024)
-# vmap_transitions = vmap_rollout(rngs)
+vmap_rollout = jax.jit(jax.vmap(build_rollout(env, env_params, num_steps=1000)))
+rngs = jax.random.split(jax.random.PRNGKey(0), num=2)
+vmap_transitions = vmap_rollout(rngs)
 
-print(f"Transitions shapes: \n, {jtu.tree_map(jnp.shape, transitions)}")
+#timestep = jtu.tree_map(lambda x: x[0][1], vmap_transitions)
+
+#print(f"Transitions shapes: \n, {jtu.tree_map(jnp.shape, vmap_transitions)}")
 
 # optionally render the state
 images = []
 
 for i in trange(1000):
-    timestep = jtu.tree_map(lambda x: x[i], transitions)
+    timestep = jtu.tree_map(lambda x: x[0][i], vmap_transitions)
     images.append(env.render(env_params, timestep))
 
 imageio.mimsave("example_rollout.mp4", images, fps=32, format="mp4")
