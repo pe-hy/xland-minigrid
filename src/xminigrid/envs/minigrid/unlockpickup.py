@@ -11,21 +11,20 @@ from ...types import AgentState, EnvCarry, State
 # colors like in the original minigrid
 _allowed_colors = jnp.array(
     (
-        Colors.RED,
-        Colors.GREEN,
-        Colors.BLUE,
-        Colors.PURPLE,
-        Colors.YELLOW,
-        Colors.GREY,
+        Colors.CYAN,
+        Colors.MAGENTA,
+        Colors.LIME,
+        Colors.TEAL,
+        Colors.MAROON,
     )
 )
 _allowed_entities = jnp.array(
     (
-        Tiles.BALL,
-        Tiles.SQUARE,
-        Tiles.PYRAMID,
-        Tiles.STAR,
-        Tiles.HEX,
+        Tiles.DIAMOND,
+        Tiles.PARALLELOGRAM,
+        Tiles.PENTAGON,
+        Tiles.CROSS,
+        Tiles.TRAPEZOID,
     )
 )
 _rule_encoding = EmptyRule().encode()[None, ...]

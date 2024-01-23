@@ -19,6 +19,11 @@ COLOR_NAMES = {
     Colors.WHITE: "white",
     Colors.BROWN: "brown",
     Colors.PINK: "pink",
+    Colors.CYAN: "cyan",
+    Colors.MAGENTA: "magenta",
+    Colors.LIME: "lime",
+    Colors.TEAL: "teal",
+    Colors.MAROON: "maroon",
 }
 
 TILE_STR = {
@@ -37,6 +42,11 @@ TILE_STR = {
     Tiles.DOOR_CLOSED: "C",
     Tiles.DOOR_OPEN: "O",
     Tiles.KEY: "K",
+    Tiles.DIAMOND: "D",
+    Tiles.PARALLELOGRAM: "P",
+    Tiles.TRAPEZOID: "T",
+    Tiles.PENTAGON: "5",
+    Tiles.CROSS: "X",
 }
 
 # for ruleset printing
@@ -49,6 +59,11 @@ RULE_TILE_STR = {
     Tiles.KEY: "key",
     Tiles.HEX: "hexagon",
     Tiles.STAR: "star",
+    Tiles.DIAMOND: "diamond",
+    Tiles.PARALLELOGRAM: "parallelogram",
+    Tiles.TRAPEZOID: "trapezoid",
+    Tiles.PENTAGON: "pentagon",
+    Tiles.CROSS: "cross",
 }
 
 PLAYER_STR = {0: "^", 1: ">", 2: "V", 3: "<"}

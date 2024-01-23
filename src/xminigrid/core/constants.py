@@ -3,8 +3,8 @@ from flax import struct
 
 # GRID: [tile, color]
 NUM_LAYERS = 2
-NUM_TILES = 15
-NUM_COLORS = 14
+NUM_TILES = 20
+NUM_COLORS = 19
 NUM_ACTIONS = 6
 
 
@@ -26,6 +26,11 @@ class Tiles(struct.PyTreeNode):
     DOOR_OPEN: int = struct.field(pytree_node=False, default=12)
     HEX: int = struct.field(pytree_node=False, default=13)
     STAR: int = struct.field(pytree_node=False, default=14)
+    DIAMOND: int = struct.field(pytree_node=False, default=15)
+    PARALLELOGRAM: int = struct.field(pytree_node=False, default=16)
+    TRAPEZOID: int = struct.field(pytree_node=False, default=17)
+    PENTAGON: int = struct.field(pytree_node=False, default=18)
+    CROSS: int = struct.field(pytree_node=False, default=19)
 
 
 class Colors(struct.PyTreeNode):
@@ -43,6 +48,11 @@ class Colors(struct.PyTreeNode):
     WHITE: int = struct.field(pytree_node=False, default=11)
     BROWN: int = struct.field(pytree_node=False, default=12)
     PINK: int = struct.field(pytree_node=False, default=13)
+    CYAN: int = struct.field(pytree_node=False, default=14)
+    MAGENTA: int = struct.field(pytree_node=False, default=15)
+    LIME: int = struct.field(pytree_node=False, default=16)
+    TEAL: int = struct.field(pytree_node=False, default=17)
+    MAROON: int = struct.field(pytree_node=False, default=18)
 
 
 # Only ~100 combinations so far, better to preallocate them
@@ -80,6 +90,10 @@ PICKABLE = jnp.array(
         Tiles.KEY,
         Tiles.HEX,
         Tiles.STAR,
+        Tiles.DIAMOND,
+        Tiles.PARALLELOGRAM,
+        Tiles.PENTAGON,
+        Tiles.CROSS,
     )
 )
 

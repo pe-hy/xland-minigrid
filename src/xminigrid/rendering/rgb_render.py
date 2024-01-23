@@ -13,6 +13,7 @@ from .utils import (
     point_in_hexagon,
     point_in_rect,
     point_in_triangle,
+    point_in_line,
     rotate_fn,
 )
 
@@ -28,6 +29,11 @@ COLORS_MAP = {
     Colors.WHITE: np.array((255, 255, 255)),
     Colors.BROWN: np.array((160, 82, 45)),
     Colors.PINK: np.array((225, 20, 147)),
+    Colors.CYAN: np.array((0, 255, 255)),
+    Colors.MAGENTA: np.array((255, 0, 255)),
+    Colors.LIME: np.array((191, 255, 0)),
+    Colors.TEAL: np.array((0, 128, 128)),
+    Colors.MAROON: np.array((128, 0, 0)),
 }
 
 
@@ -67,6 +73,59 @@ def _render_hex(img, color):
     _render_floor(img, Colors.BLACK)
     fill_coords(img, point_in_hexagon(0.35), COLORS_MAP[color])
 
+def _render_diamond(img, color):
+    _render_floor(img, Colors.BLACK)
+    tri_fn1 = point_in_triangle((0.5, 0.2), (0.2, 0.5), (0.5, 0.8))
+    tri_fn2 = point_in_triangle((0.5, 0.2), (0.8, 0.5), (0.5, 0.8))
+    fill_coords(img, lambda x, y: tri_fn1(x, y) or tri_fn2(x, y), COLORS_MAP[color])
+
+def _render_parallelogram(img, color):
+    # Define the four corners of the parallelogram
+    p1 = (0.3, 0.3)
+    p2 = (0.7, 0.3)
+    p3 = (0.8, 0.7)
+    p4 = (0.4, 0.7)
+
+    # Create two triangles to form the parallelogram
+    tri_fn1 = point_in_triangle(p1, p2, p3)
+    tri_fn2 = point_in_triangle(p1, p3, p4)
+    _render_floor(img, Colors.BLACK)
+    fill_coords(img, lambda x, y: tri_fn1(x, y) or tri_fn2(x, y), COLORS_MAP[color])
+
+def _render_trapezoid(img, color):
+    p1 = (0.3, 0.3)
+    p2 = (0.7, 0.3)
+    p3 = (0.8, 0.7)
+    p4 = (0.2, 0.7)
+
+    tri_fn1 = point_in_triangle(p1, p2, p3)
+    tri_fn2 = point_in_triangle(p1, p3, p4)
+    _render_floor(img, Colors.BLACK)
+    fill_coords(img, lambda x, y: tri_fn1(x, y) or tri_fn2(x, y), COLORS_MAP[color])
+
+def _render_pentagon(img, color):
+    # Define the five corners of the pentagon
+    p1 = (0.5, 0.2)
+    p2 = (0.7, 0.4)
+    p3 = (0.6, 0.7)
+    p4 = (0.4, 0.7)
+    p5 = (0.3, 0.4)
+
+    # Create three triangles to form the pentagon
+    tri_fn1 = point_in_triangle(p1, p2, p5)
+    tri_fn2 = point_in_triangle(p2, p3, p4)
+    tri_fn3 = point_in_triangle(p4, p5, p2)
+    _render_floor(img, Colors.BLACK)
+    fill_coords(img, lambda x, y: tri_fn1(x, y) or tri_fn2(x, y) or tri_fn3(x, y), COLORS_MAP[color])
+
+
+def _render_cross(img, color):
+    _render_floor(img, Colors.BLACK)
+    # Define the two rectangles of the cross
+    rect_fn1 = point_in_rect(0.45, 0.55, 0.2, 0.8)
+    rect_fn2 = point_in_rect(0.2, 0.8, 0.45, 0.55)
+
+    fill_coords(img, lambda x, y: rect_fn1(x, y) or rect_fn2(x, y), COLORS_MAP[color])
 
 def _render_star(img, color):
     # yes, this is a hexagram not a star, but who cares...
@@ -156,6 +215,12 @@ TILES_FN_MAP = {
     Tiles.DOOR_CLOSED: _render_door_closed,
     Tiles.DOOR_OPEN: _render_door_open,
     Tiles.EMPTY: lambda img, color: img,
+    Tiles.DIAMOND: _render_diamond,
+    Tiles.PARALLELOGRAM: _render_parallelogram,
+    Tiles.TRAPEZOID: _render_trapezoid,
+    Tiles.PENTAGON: _render_pentagon,
+    Tiles.CROSS: _render_cross
+,
 }
 
 

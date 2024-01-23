@@ -11,9 +11,8 @@ from tqdm.auto import trange, tqdm
 
 from xminigrid.wrappers import GymAutoResetWrapper
 
+# run this and see example_rollout.mp4
 
-# alternatively users can provide step_fn and reset_fn instead
-# of the closure, but in whis way it is simpler to use after the creation
 def build_rollout(env, env_params, num_steps):
     def rollout(rng):
         def _step_fn(carry, _):
@@ -37,7 +36,7 @@ def build_rollout(env, env_params, num_steps):
     return rollout
 
 
-env, env_params = xminigrid.make("MiniGrid-EmptyRandom-8x8")
+env, env_params = xminigrid.make("MiniGrid-UnlockPickUp")
 # do not forget to use auto reset wrapper!
 env = GymAutoResetWrapper(env)
 
