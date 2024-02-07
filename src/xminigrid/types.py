@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 from flax import struct
+from jax.random import KeyArray
 from typing_extensions import TypeAlias
 
 from .core.constants import TILES_REGISTRY, Colors, Tiles
@@ -17,9 +18,9 @@ Tile: TypeAlias = jax.Array
 
 
 class AgentState(struct.PyTreeNode):
-    position: jax.Array = jnp.asarray((0, 0))
-    direction: jax.Array = jnp.asarray(0)
-    pocket: jax.Array = TILES_REGISTRY[Tiles.EMPTY, Colors.EMPTY]
+    position: jax.Array = struct.field(default_factory=lambda: jnp.asarray((0, 0)))
+    direction: jax.Array = struct.field(default_factory=lambda: jnp.asarray(0))
+    pocket: jax.Array = struct.field(default_factory=lambda: TILES_REGISTRY[Tiles.EMPTY, Colors.EMPTY])
 
 
 class EnvCarry(struct.PyTreeNode):
@@ -27,7 +28,7 @@ class EnvCarry(struct.PyTreeNode):
 
 
 class State(struct.PyTreeNode):
-    key: jax.random.PRNGKey
+    key: KeyArray
     step_num: jax.Array
 
     grid: GridState
