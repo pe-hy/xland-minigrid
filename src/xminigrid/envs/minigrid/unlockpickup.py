@@ -3,7 +3,7 @@ import jax.numpy as jnp
 
 from ...core.constants import TILES_REGISTRY, Colors, Tiles
 from ...core.goals import AgentHoldGoal
-from ...core.grid import coordinates_mask, sample_coordinates, sample_direction, two_rooms
+from ...core.grid import coordinates_mask, sample_coordinates, sample_direction, two_rooms, empty_world
 from ...core.rules import EmptyRule
 from ...environment import Environment, EnvParams
 from ...types import AgentState, EnvCarry, State
@@ -31,6 +31,17 @@ _rule_encoding = EmptyRule().encode()[None, ...]
 
 
 class UnlockPickUp(Environment):
+    def __init__(self):
+        super().__init__()
+        g1 = empty_world(6, 11)
+        g1 = g1.at[3, 5].set(TILES_REGISTRY[Tiles.DOOR_LOCKED, Colors.CYAN])
+        g1 = g1.at[3, 3].set(TILES_REGISTRY[Tiles.KEY, Colors.CYAN])
+        g2 = empty_world(6, 11)
+        g2 = g2.at[1, 1].set(TILES_REGISTRY[Tiles.DOOR_LOCKED, Colors.CYAN])
+        g2 = g2.at[2, 2].set(TILES_REGISTRY[Tiles.KEY, Colors.CYAN])
+
+        self.grids = jnp.array([g1, g2])
+
     def default_params(self, **kwargs) -> EnvParams:
         default_params = super().default_params(height=6, width=11)
         default_params = default_params.replace(**kwargs)
@@ -39,9 +50,9 @@ class UnlockPickUp(Environment):
     def time_limit(self, params: EnvParams) -> int:
         return 8 * params.height**2
 
-    def _generate_problem(self, params: EnvParams, key: jax.Array) -> State:
+    def _generate_problem_old(self, params: EnvParams, key: jax.Array) -> State:
         key, *keys = jax.random.split(key, num=7)
-
+        #jax.debug.print("x: {}", key)
         obj = jax.random.choice(keys[0], _allowed_entities)
         door_color, obj_color = jax.random.choice(keys[1], _allowed_colors, shape=(2,))
         door_pos = jax.random.randint(keys[2], shape=(), minval=1, maxval=params.height - 1)
@@ -58,6 +69,42 @@ class UnlockPickUp(Environment):
         obj_coords = sample_coordinates(keys[4], grid, num=1, mask=mask).squeeze()
 
         grid = grid.at[key_coords[0], key_coords[1]].set(TILES_REGISTRY[Tiles.KEY, door_color])
+        grid = grid.at[obj_coords[0], obj_coords[1]].set(TILES_REGISTRY[obj, obj_color])
+
+        agent = AgentState(position=agent_coords, direction=sample_direction(keys[5]))
+        goal_encoding = AgentHoldGoal(tile=TILES_REGISTRY[obj, obj_color]).encode()
+
+        state = State(
+            key=key,
+            step_num=jnp.asarray(0),
+            grid=grid,
+            agent=agent,
+            goal_encoding=goal_encoding,
+            rule_encoding=_rule_encoding,
+            carry=EnvCarry(),
+        )
+        return state
+
+    def _generate_problem(self, params: EnvParams, key: jax.Array) -> State:
+        key, *keys = jax.random.split(key, num=7)
+        grid = jax.random.choice(keys[2],self.grids)
+        #jax.debug.print("x: {}", key)
+        obj = jax.random.choice(keys[0], _allowed_entities)
+        door_color, obj_color = jax.random.choice(keys[1], _allowed_colors, shape=(2,))
+        #door_pos = jax.random.randint(keys[2], shape=(), minval=1, maxval=params.height - 1)
+
+        #grid = two_rooms(params.height, params.width)
+        #grid = grid.at[door_pos, params.width // 2].set(TILES_REGISTRY[Tiles.DOOR_LOCKED, door_color])
+
+        # mask out positions after the wall, so that agent and key are always on the same side
+        # WARN: this is a bit expensive, judging by the FPS benchmark
+        mask = coordinates_mask(grid, (params.height, params.width // 2), comparison_fn=jnp.less)
+        key_coords, agent_coords = sample_coordinates(keys[3], grid, num=2, mask=mask)
+
+        #mask = coordinates_mask(grid, (0, params.width // 2 + 1), comparison_fn=jnp.greater_equal)
+        obj_coords = sample_coordinates(keys[4], grid, num=1, mask=mask).squeeze()
+
+        #grid = grid.at[key_coords[0], key_coords[1]].set(TILES_REGISTRY[Tiles.KEY, door_color])
         grid = grid.at[obj_coords[0], obj_coords[1]].set(TILES_REGISTRY[obj, obj_color])
 
         agent = AgentState(position=agent_coords, direction=sample_direction(keys[5]))
