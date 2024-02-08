@@ -1,15 +1,9 @@
+from itertools import product
+
 import jax.numpy as jnp
 from flax import struct
+import pickle
 
-# GRID: [tile, color]
-NUM_LAYERS = 2
-NUM_TILES = 20
-NUM_COLORS = 39
-NUM_ACTIONS = 6
-
-
-# TODO: do we really need END_OF_MAP? seem like unseen can be used instead...
-# enums, kinda...
 class Tiles(struct.PyTreeNode):
     EMPTY: int = struct.field(pytree_node=False, default=0)
     END_OF_MAP: int = struct.field(pytree_node=False, default=1)
@@ -74,61 +68,34 @@ class Colors(struct.PyTreeNode):
     AMBER: int = struct.field(pytree_node=False, default=37)
     EMERALD: int = struct.field(pytree_node=False, default=38)
 
+tiles = [attr for attr in Tiles.__dict__.values() if isinstance(attr, int)]
+colors = [attr for attr in Colors.__dict__.values() if isinstance(attr, int)]
 
+id_ranges = [(0, 20), (10000, 10100), (11000, 11020), (101000, 101100)]
 
-# Only ~100 combinations so far, better to preallocate them
-TILES_REGISTRY = []
-for tile_id in range(NUM_TILES):
-    for color_id in range(NUM_COLORS):
-        TILES_REGISTRY.append((tile_id, color_id))
-TILES_REGISTRY = jnp.array(TILES_REGISTRY, dtype=jnp.uint8).reshape(NUM_TILES, NUM_COLORS, -1)
+# Exclude certain tiles and colors
+excluded_tiles = [Tiles.EMPTY, Tiles.END_OF_MAP, Tiles.UNSEEN, Tiles.FLOOR, Tiles.WALL, Tiles.GOAL, Tiles.KEY, Tiles.DOOR_LOCKED, Tiles.DOOR_CLOSED, Tiles.DOOR_OPEN]
+excluded_colors = [Colors.EMPTY, Colors.END_OF_MAP, Colors.UNSEEN]
 
+tiles = [tile for tile in tiles if tile not in excluded_tiles]
+colors = [color for color in colors if color not in excluded_colors]
 
-DIRECTIONS = jnp.array(
-    (
-        (-1, 0),  # Up
-        (0, 1),  # Right
-        (1, 0),  # Down
-        (0, -1),  # Left
-    )
-)
+# Generate unique combinations of tiles and colors
+combinations = list(product(tiles, colors))
 
+# Check if we have enough unique combinations for all IDs
+total_ids = sum(end - start for start, end in id_ranges)
+if total_ids > len(combinations):
+    raise ValueError("Not enough unique combinations for all IDs")
 
-WALKABLE = jnp.array(
-    (
-        Tiles.EMPTY,
-        Tiles.FLOOR,
-        Tiles.GOAL,
-        Tiles.DOOR_OPEN,
-    )
-)
+# Assign unique combinations to IDs
+id_to_combination = {}
+for start, end in id_ranges:
+    for id in range(start, end):
+        id_to_combination[id] = combinations.pop(0)
 
-PICKABLE = jnp.array(
-    (
-        Tiles.BALL,
-        Tiles.SQUARE,
-        Tiles.PYRAMID,
-        Tiles.KEY,
-        Tiles.HEX,
-        Tiles.STAR,
-        Tiles.DIAMOND,
-        Tiles.PARALLELOGRAM,
-        Tiles.PENTAGON,
-        Tiles.CROSS,
-    )
-)
+with open ("id_to_combination.pkl", "wb") as f:
+    pickle.dump(id_to_combination, f)
 
-FREE_TO_PUT_DOWN = jnp.array(
-    (
-        Tiles.EMPTY,
-        Tiles.FLOOR,
-    )
-)
-
-LOS_BLOCKING = jnp.array(
-    (
-        Tiles.WALL,
-        Tiles.DOOR_LOCKED,
-        Tiles.DOOR_CLOSED,
-    )
-)
+print(id_to_combination)
+print(len(id_to_combination))

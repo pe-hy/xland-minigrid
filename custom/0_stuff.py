@@ -1,32 +1,29 @@
 # relative import of ../src/xminigrid
 import sys
-#sys.path.append("../")
+import timeit
 
-#from src import xminigrid
-
-import xminigrid
+import imageio
 import jax
 import jax.numpy as jnp
 import jax.tree_util as jtu
+import matplotlib.pyplot as plt
 import numpy as np
 
-import timeit
-import imageio
-import matplotlib.pyplot as plt
-from tqdm.auto import trange, tqdm
-
+# sys.path.append("../")
+# from src import xminigrid
+import xminigrid
+from tqdm.auto import tqdm, trange
 from xminigrid.wrappers import GymAutoResetWrapper
 
 # run this and see example_rollout.mp4
+
 
 def build_rollout(env, env_params, num_steps):
     def rollout(rng):
         def _step_fn(carry, _):
             rng, timestep = carry
             rng, _rng = jax.random.split(rng)
-            action = jax.random.randint(
-                _rng, shape=(), minval=0, maxval=env.num_actions(env_params)
-            )
+            action = jax.random.randint(_rng, shape=(), minval=0, maxval=env.num_actions(env_params))
 
             timestep = env.step(env_params, timestep, action)
             return (rng, timestep), timestep
@@ -34,36 +31,36 @@ def build_rollout(env, env_params, num_steps):
         rng, _rng = jax.random.split(rng)
 
         timestep = env.reset(env_params, _rng)
-        #jax.debug.print('x:{}',rng)
+        # jax.debug.print('x:{}',rng)
 
-        rng, transitions = jax.lax.scan(
-            _step_fn, (rng, timestep), None, length=num_steps
-        )
+        rng, transitions = jax.lax.scan(_step_fn, (rng, timestep), None, length=num_steps)
         return transitions
 
     return rollout
 
+
 def print_size(x):
     print(len(x))
 
-env, env_params = xminigrid.make("MiniGrid-UnlockPickUp") # env_params will be width and heigth
+
+env, env_params = xminigrid.make("MiniGrid-UnlockPickUp")  # env_params will be width and heigth
 # do not forget to use auto reset wrapper!
 env = GymAutoResetWrapper(env)
 
 # jiting the entire rollout
-#rollout_fn = jax.jit(build_rollout(env, env_params, num_steps=1000))
+# rollout_fn = jax.jit(build_rollout(env, env_params, num_steps=1000))
 
 # first execution will compile
-#transitions = rollout_fn(jax.random.PRNGKey(0))
-#timestep = jtu.tree_map(print_size, transitions)
-num_steps = 1000
+# transitions = rollout_fn(jax.random.PRNGKey(0))
+# timestep = jtu.tree_map(print_size, transitions)
+num_steps = 1
 vmap_rollout = jax.jit(jax.vmap(build_rollout(env, env_params, num_steps=num_steps)))
 rngs = jax.random.split(jax.random.PRNGKey(0), num=2)
 vmap_transitions = vmap_rollout(rngs)
 
-#timestep = jtu.tree_map(lambda x: x[0][1], vmap_transitions)
+# timestep = jtu.tree_map(lambda x: x[0][1], vmap_transitions)
 
-#print(f"Transitions shapes: \n, {jtu.tree_map(jnp.shape, vmap_transitions)}")
+# print(f"Transitions shapes: \n, {jtu.tree_map(jnp.shape, vmap_transitions)}")
 
 # optionally render the state
 images = []
