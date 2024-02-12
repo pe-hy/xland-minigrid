@@ -71,7 +71,7 @@ class Colors(struct.PyTreeNode):
 tiles = [attr for attr in Tiles.__dict__.values() if isinstance(attr, int)]
 colors = [attr for attr in Colors.__dict__.values() if isinstance(attr, int)]
 
-id_ranges = [(0, 20), (10000, 10100), (11000, 11020), (101000, 101100)]
+id_ranges = [(0, 21), (10000, 10100), (11000, 11020), (101000, 101100)]
 
 # Exclude certain tiles and colors
 excluded_tiles = [Tiles.EMPTY, Tiles.END_OF_MAP, Tiles.UNSEEN, Tiles.FLOOR, Tiles.WALL, Tiles.GOAL, Tiles.KEY, Tiles.DOOR_LOCKED, Tiles.DOOR_CLOSED, Tiles.DOOR_OPEN]
@@ -94,7 +94,7 @@ for start, end in id_ranges:
     for id in range(start, end):
         id_to_combination[id] = combinations.pop(0)
 
-with open ("id_to_combination.pkl", "wb") as f:
+with open ("pkls/id_to_combination.pkl", "wb") as f:
     pickle.dump(id_to_combination, f)
 
 print(id_to_combination)

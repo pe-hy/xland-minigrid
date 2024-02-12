@@ -1,6 +1,6 @@
 import os
 import pickle
-
+import random
 import jax
 import jax.numpy as jnp
 
@@ -39,7 +39,6 @@ class UnlockPickUp(Environment):
 
         with open("pkls/id_to_combination.pkl", "rb") as f:
             id_to_combination = pickle.load(f)
-
         self.dic = {
             0: [
                 {
@@ -83,13 +82,63 @@ class UnlockPickUp(Environment):
                         (8, 9),
                     ],
                     "atoms": {10: (4, 5), 11: (6, 6), 12: (8, 5), 13: (7, 2)},
-                    "mols": [100, 101],
                     "obstacles": {20: (1, 5)},
                     "agent": (2, 2),
                 },
                 {"rules": {(10, 11): 100, (12, 13): 101}, "win_condition": (100, 101)},
+            ],
+            1: [
+                {
+                    "size": (10, 10),
+                    "walls": [
+                        (0, 0),
+                        (0, 1),
+                        (0, 2),
+                        (0, 3),
+                        (0, 4),
+                        (0, 5),
+                        (0, 6),
+                        (0, 7),
+                        (0, 8),
+                        (0, 9),
+                        (9, 0),
+                        (8, 0),
+                        (7, 0),
+                        (6, 0),
+                        (5, 0),
+                        (4, 0),
+                        (3, 0),
+                        (2, 0),
+                        (1, 0),
+                        (9, 1),
+                        (9, 2),
+                        (9, 3),
+                        (9, 4),
+                        (9, 5),
+                        (9, 6),
+                        (9, 7),
+                        (9, 8),
+                        (9, 9),
+                        (1, 9),
+                        (2, 9),
+                        (3, 9),
+                        (4, 9),
+                        (5, 9),
+                        (6, 9),
+                        (7, 9),
+                        (8, 9),
+                    ],
+                    "atoms": {10: (3, 3), 11: (4, 4), 12: (5, 5), 13: (6, 6)},
+                    "obstacles": {20: (7, 7)},
+                    "agent": (8, 8),
+                },
+                {"rules": {(10, 11): 100, (12, 13): 101}, "win_condition": (100, 101)},
             ]
         }
+
+        self.arr_agent = []
+        self.arr_grid = []
+
         for k, v_list in self.dic.items():
             for v in v_list:
                 if "size" in v:
@@ -100,9 +149,16 @@ class UnlockPickUp(Environment):
                         g = g.at[walls_xy[0], walls_xy[1]].set(TILES_REGISTRY[Tiles.WALL, Colors.WHITE])
                     for atom_id, xy in v["atoms"].items():
                         g = g.at[xy[0], xy[1]].set(
-                            TILES_REGISTRY[id_to_combination[atom_id][0], id_to_combination[atom_id][1]]
+                            TILES_REGISTRY[id_to_combination[atom_id]]
                         )
-        self.grids = jnp.array([g])
+                    for obstacle_id, xy in v["obstacles"].items():
+                        g = g.at[xy[0], xy[1]].set(
+                            TILES_REGISTRY[id_to_combination[obstacle_id]]
+                        )
+                    self.arr_agent.append(v["agent"])
+                    self.arr_grid.append(g)
+        self.arr_agent = jnp.array(self.arr_agent)
+        self.arr_grid = jnp.stack(self.arr_grid)
 
     def default_params(self, **kwargs) -> EnvParams:
         default_params = super().default_params(height=6, width=11)
@@ -114,7 +170,12 @@ class UnlockPickUp(Environment):
 
     def _generate_problem(self, params: EnvParams, key: jax.Array) -> State:
         key, *keys = jax.random.split(key, num=7)
-        grid = jax.random.choice(keys[2], self.grids)
+
+        #agent_coords, grid = random.choice(self.agent_to_grid)
+        #print(agent_coords)
+        index = jax.random.choice(keys[2], jnp.arange(self.arr_agent.shape[0]))
+        agent_coords = self.arr_agent[index]
+        grid = self.arr_grid[index]
         # jax.debug.print("x: {}", key)
         obj = jax.random.choice(keys[0], _allowed_entities)
         door_color, obj_color = jax.random.choice(keys[1], _allowed_colors, shape=(2,))
@@ -125,14 +186,11 @@ class UnlockPickUp(Environment):
 
         # mask out positions after the wall, so that agent and key are always on the same side
         # WARN: this is a bit expensive, judging by the FPS benchmark
-        mask = coordinates_mask(grid, (params.height, params.width // 2), comparison_fn=jnp.less)
-
+        # mask = coordinates_mask(grid, (params.height, params.width // 2), comparison_fn=jnp.less)
         # mask = coordinates_mask(grid, (0, params.width // 2 + 1), comparison_fn=jnp.greater_equal)
-        obj_coords = sample_coordinates(keys[4], grid, num=1, mask=mask).squeeze()
-
+        # obj_coords = sample_coordinates(keys[4], grid, num=1, mask=mask).squeeze()
         # grid = grid.at[key_coords[0], key_coords[1]].set(TILES_REGISTRY[Tiles.KEY, door_color])
-        grid = grid.at[obj_coords[0], obj_coords[1]].set(TILES_REGISTRY[obj, obj_color])
-        agent_coords = self.agent_coords_dict[grid]
+
         agent = AgentState(position=agent_coords, direction=sample_direction(keys[5]))
         goal_encoding = AgentHoldGoal(tile=TILES_REGISTRY[obj, obj_color]).encode()
 
