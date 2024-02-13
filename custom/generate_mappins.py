@@ -4,6 +4,7 @@ import jax.numpy as jnp
 from flax import struct
 import pickle
 
+
 class Tiles(struct.PyTreeNode):
     EMPTY: int = struct.field(pytree_node=False, default=0)
     END_OF_MAP: int = struct.field(pytree_node=False, default=1)
@@ -68,13 +69,26 @@ class Colors(struct.PyTreeNode):
     AMBER: int = struct.field(pytree_node=False, default=37)
     EMERALD: int = struct.field(pytree_node=False, default=38)
 
+
 tiles = [attr for attr in Tiles.__dict__.values() if isinstance(attr, int)]
 colors = [attr for attr in Colors.__dict__.values() if isinstance(attr, int)]
 
-id_ranges = [(0, 21), (10000, 10100), (11000, 11020), (101000, 101100)]
-
+id_ranges = [(0, 21), (10000, 10100), (101000, 101100)]
+obstacle_ranges = (11000, 11020)
 # Exclude certain tiles and colors
-excluded_tiles = [Tiles.EMPTY, Tiles.END_OF_MAP, Tiles.UNSEEN, Tiles.FLOOR, Tiles.WALL, Tiles.GOAL, Tiles.KEY, Tiles.DOOR_LOCKED, Tiles.DOOR_CLOSED, Tiles.DOOR_OPEN]
+excluded_tiles = [
+    Tiles.EMPTY,
+    Tiles.END_OF_MAP,
+    Tiles.UNSEEN,
+    Tiles.FLOOR,
+    Tiles.WALL,
+    Tiles.GOAL,
+    Tiles.KEY,
+    Tiles.DOOR_LOCKED,
+    Tiles.DOOR_CLOSED,
+    Tiles.DOOR_OPEN,
+    Tiles.CROSS,
+]
 excluded_colors = [Colors.EMPTY, Colors.END_OF_MAP, Colors.UNSEEN]
 
 tiles = [tile for tile in tiles if tile not in excluded_tiles]
@@ -94,7 +108,13 @@ for start, end in id_ranges:
     for id in range(start, end):
         id_to_combination[id] = combinations.pop(0)
 
-with open ("pkls/id_to_combination.pkl", "wb") as f:
+cross_products = list(product([11], colors)) # obstacle will only be closed door and some color
+print(cross_products)
+
+for id in range(obstacle_ranges[0], obstacle_ranges[1]):
+    id_to_combination[id] = cross_products.pop(0)
+
+with open("pkls/id_to_combination.pkl", "wb") as f:
     pickle.dump(id_to_combination, f)
 
 print(id_to_combination)

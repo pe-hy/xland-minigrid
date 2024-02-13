@@ -480,19 +480,29 @@ class AgentNearLeftRule(BaseRule):
         encoding = jnp.hstack([jnp.asarray(11), self.tile, self.prod_tile], dtype=jnp.uint8)
         return pad_along_axis(encoding, MAX_RULE_ENCODING_LEN)
 
-class CustomRule(BaseRule):
-    # Define any necessary fields for your rule
 
-    def __call__(self, grid, agent, action, position):
-        pass
-        # Implement the logic that checks the condition and updates the grid
-        # and/or agent state according to your rule.
+# class AgentNearObstacleRule(BaseRule):
+#     obstacle_id = struct.field(pytree_node=False)
+#     object_id = struct.field(pytree_node=False)
 
-    @classmethod
-    def decode(cls, encoding):
-        pass
-        # Instantiate and return the rule based on the encoded array.
+#     def __call__(self, grid: GridState, agent: AgentState, action: int | jax.Array, position: jax.Array):
+#         # This rule will be called on every environment step, so we need to handle all possible actions.
+#         # Let's assume that action 2 corresponds to 'pick up'.
+#         is_pick_up_action = jnp.equal(action, 2)
 
-    def encode(self):
-        pass
-        # Return an encoded JAX array representing the rule.
+#         # Check if the agent is near the obstacle and the object.
+#         is_near_obstacle = jnp.any(
+#             equal(grid[position[0] - 1 : position[0] + 2, position[1] - 1 : position[1] + 2], self.obstacle_id)
+#         )
+#         is_near_object = jnp.any(
+#             equal(grid[position[0] - 1 : position[0] + 2, position[1] - 1 : position[1] + 2], self.object_id)
+#         )
+
+#         # If the agent is trying to pick up the obstacle while near the object, we prevent the action.
+#         should_prevent_action = is_pick_up_action & is_near_obstacle & is_near_object
+
+#         # Potentially replace the agent's action with a 'no-op' (assuming action 0 is 'no-op')
+#         new_action = jnp.where(should_prevent_action, 0, action)
+
+#         # We're not modifying the grid or agent state in this rule.
+#         return grid, agent.replace(action=new_action)

@@ -53,7 +53,7 @@ env = GymAutoResetWrapper(env)
 # first execution will compile
 # transitions = rollout_fn(jax.random.PRNGKey(0))
 # timestep = jtu.tree_map(print_size, transitions)
-num_steps = 1000
+num_steps = 100
 
 
 vmap_rollout = jax.jit(jax.vmap(build_rollout(env, env_params, num_steps=num_steps)))

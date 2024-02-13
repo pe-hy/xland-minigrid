@@ -83,8 +83,9 @@ class UnlockPickUp(Environment):
                         (8, 9),
                     ],
                     "atoms": {10: (4, 5), 11: (6, 6), 12: (8, 5), 13: (7, 2)},
-                    "obstacles": {20: (1, 5)},
+                    "obstacles": {11001: (1, 5)},
                     "agent": (2, 2),
+                    "win_condition": (14, 15)
                 },
                 {"rules": {(10, 11): 10002, (12, 13): 10001}},
             ],
@@ -130,8 +131,9 @@ class UnlockPickUp(Environment):
                         (8, 9),
                     ],
                     "atoms": {10: (3, 3), 11: (4, 4), 12: (5, 5), 13: (6, 6)},
-                    "obstacles": {20: (7, 7)},
+                    "obstacles": {11001: (7, 7)},
                     "agent": (8, 8),
+                    "win_condition": (14, 15)
                 },
                 {"rules": {(10, 11): 10001, (12, 13): 10002}},
             ],
@@ -140,14 +142,17 @@ class UnlockPickUp(Environment):
         for k, lst in self.dic.items():
             for d in lst:
                 if "rules" in d:
+                    inst_rules = []
                     for rule, res in d["rules"].items():
                         a_1, a_2 = rule
                         tile_a = id_to_combination[a_1]
                         tile_b = id_to_combination[a_2]
                         prod_tile = id_to_combination[res]
                         rule = TileNearRule(tile_a=tile_a, tile_b=tile_b, prod_tile=prod_tile)
-                        self.rules_lst.append(rule)
-        self.rule_encoding = jnp.stack([rule.encode() for rule in self.rules_lst], axis=0)
+                        inst_rules.append(rule.encode())
+                    self.rules_lst.append(inst_rules)
+
+        self.rule_encoding = jnp.stack([jnp.stack(inst_rules, axis=0) for inst_rules in self.rules_lst], axis=0)
         self.arr_agent = []
         self.arr_grid = []
 
@@ -156,15 +161,19 @@ class UnlockPickUp(Environment):
                 if "size" in v:
                     x = v["size"][0]
                     y = v["size"][1]
-                    g = empty_world(x, y)
+                    g = empty_world(x + 1, y)
                     for walls_xy in v["walls"]:
                         g = g.at[walls_xy[0], walls_xy[1]].set(TILES_REGISTRY[Tiles.WALL, Colors.WHITE])
                     for atom_id, xy in v["atoms"].items():
                         g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[atom_id]])
                     for obstacle_id, xy in v["obstacles"].items():
                         g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[obstacle_id]])
-                    self.arr_agent.append(v["agent"])
+                    final_1, final_2 = v["win_condition"]
+                    g = g.at[x, 0].set(TILES_REGISTRY[id_to_combination[final_1]])
+                    g = g.at[x, y-1].set(TILES_REGISTRY[id_to_combination[final_2]])
                     self.arr_grid.append(g)
+                    self.arr_agent.append(v["agent"])
+                    
         self.arr_agent = jnp.array(self.arr_agent)
         self.arr_grid = jnp.stack(self.arr_grid)
 
@@ -177,7 +186,6 @@ class UnlockPickUp(Environment):
         return 8 * params.height**2
 
     def _generate_problem(self, params: EnvParams, key: jax.Array) -> State:
-        print(type(_rule_encoding))
         key, *keys = jax.random.split(key, num=7)
 
         # agent_coords, grid = random.choice(self.agent_to_grid)
@@ -185,6 +193,7 @@ class UnlockPickUp(Environment):
         index = jax.random.choice(keys[2], jnp.arange(self.arr_agent.shape[0]))
         agent_coords = self.arr_agent[index]
         grid = self.arr_grid[index]
+        rules = self.rule_encoding[index]
         # jax.debug.print("x: {}", key)
         obj = jax.random.choice(keys[0], _allowed_entities)
         door_color, obj_color = jax.random.choice(keys[1], _allowed_colors, shape=(2,))
@@ -208,7 +217,7 @@ class UnlockPickUp(Environment):
             grid=grid,
             agent=agent,
             goal_encoding=goal_encoding,
-            rule_encoding=self.rule_encoding,
+            rule_encoding=rules,
             carry=EnvCarry(),
         )
         return state
