@@ -136,7 +136,7 @@ class UnlockPickUp(Environment):
                 {"rules": {(10, 11): 10001, (12, 13): 10002}},
             ],
         }
-        rules_lst = []
+        self.rules_lst = []
         for k, lst in self.dic.items():
             for d in lst:
                 if "rules" in d:
@@ -146,11 +146,8 @@ class UnlockPickUp(Environment):
                         tile_b = id_to_combination[a_2]
                         prod_tile = id_to_combination[res]
                         rule = TileNearRule(tile_a=tile_a, tile_b=tile_b, prod_tile=prod_tile)
-                        rules_lst.append(rule)
-
-        for rule in rules_lst:
-            rule.encode()
-
+                        self.rules_lst.append(rule)
+        self.rule_encoding = jnp.stack([rule.encode() for rule in self.rules_lst], axis=0)
         self.arr_agent = []
         self.arr_grid = []
 
@@ -205,14 +202,13 @@ class UnlockPickUp(Environment):
 
         agent = AgentState(position=agent_coords, direction=sample_direction(keys[5]))
         goal_encoding = AgentHoldGoal(tile=TILES_REGISTRY[obj, obj_color]).encode()
-
         state = State(
             key=key,
             step_num=jnp.asarray(0),
             grid=grid,
             agent=agent,
             goal_encoding=goal_encoding,
-            rule_encoding=_rule_encoding,
+            rule_encoding=self.rule_encoding,
             carry=EnvCarry(),
         )
         return state
