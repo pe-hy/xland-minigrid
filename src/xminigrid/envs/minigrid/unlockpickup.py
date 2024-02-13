@@ -1,13 +1,14 @@
 import os
 import pickle
 import random
+
 import jax
 import jax.numpy as jnp
 
 from ...core.constants import TILES_REGISTRY, Colors, Tiles
 from ...core.goals import AgentHoldGoal
 from ...core.grid import coordinates_mask, empty_world, sample_coordinates, sample_direction, two_rooms
-from ...core.rules import EmptyRule
+from ...core.rules import EmptyRule, TileNearRule
 from ...environment import Environment, EnvParams
 from ...types import AgentState, EnvCarry, State
 
@@ -85,7 +86,7 @@ class UnlockPickUp(Environment):
                     "obstacles": {20: (1, 5)},
                     "agent": (2, 2),
                 },
-                {"rules": {(10, 11): 100, (12, 13): 101}, "win_condition": (100, 101)},
+                {"rules": {(10, 11): 10002, (12, 13): 10001}},
             ],
             1: [
                 {
@@ -132,9 +133,23 @@ class UnlockPickUp(Environment):
                     "obstacles": {20: (7, 7)},
                     "agent": (8, 8),
                 },
-                {"rules": {(10, 11): 100, (12, 13): 101}, "win_condition": (100, 101)},
-            ]
+                {"rules": {(10, 11): 10001, (12, 13): 10002}},
+            ],
         }
+        rules_lst = []
+        for k, lst in self.dic.items():
+            for d in lst:
+                if "rules" in d:
+                    for rule, res in d["rules"].items():
+                        a_1, a_2 = rule
+                        tile_a = id_to_combination[a_1]
+                        tile_b = id_to_combination[a_2]
+                        prod_tile = id_to_combination[res]
+                        rule = TileNearRule(tile_a=tile_a, tile_b=tile_b, prod_tile=prod_tile)
+                        rules_lst.append(rule)
+
+        for rule in rules_lst:
+            rule.encode()
 
         self.arr_agent = []
         self.arr_grid = []
@@ -148,13 +163,9 @@ class UnlockPickUp(Environment):
                     for walls_xy in v["walls"]:
                         g = g.at[walls_xy[0], walls_xy[1]].set(TILES_REGISTRY[Tiles.WALL, Colors.WHITE])
                     for atom_id, xy in v["atoms"].items():
-                        g = g.at[xy[0], xy[1]].set(
-                            TILES_REGISTRY[id_to_combination[atom_id]]
-                        )
+                        g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[atom_id]])
                     for obstacle_id, xy in v["obstacles"].items():
-                        g = g.at[xy[0], xy[1]].set(
-                            TILES_REGISTRY[id_to_combination[obstacle_id]]
-                        )
+                        g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[obstacle_id]])
                     self.arr_agent.append(v["agent"])
                     self.arr_grid.append(g)
         self.arr_agent = jnp.array(self.arr_agent)
@@ -169,10 +180,11 @@ class UnlockPickUp(Environment):
         return 8 * params.height**2
 
     def _generate_problem(self, params: EnvParams, key: jax.Array) -> State:
+        print(type(_rule_encoding))
         key, *keys = jax.random.split(key, num=7)
 
-        #agent_coords, grid = random.choice(self.agent_to_grid)
-        #print(agent_coords)
+        # agent_coords, grid = random.choice(self.agent_to_grid)
+        # print(agent_coords)
         index = jax.random.choice(keys[2], jnp.arange(self.arr_agent.shape[0]))
         agent_coords = self.arr_agent[index]
         grid = self.arr_grid[index]

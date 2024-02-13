@@ -479,3 +479,20 @@ class AgentNearLeftRule(BaseRule):
     def encode(self):
         encoding = jnp.hstack([jnp.asarray(11), self.tile, self.prod_tile], dtype=jnp.uint8)
         return pad_along_axis(encoding, MAX_RULE_ENCODING_LEN)
+
+class CustomRule(BaseRule):
+    # Define any necessary fields for your rule
+
+    def __call__(self, grid, agent, action, position):
+        pass
+        # Implement the logic that checks the condition and updates the grid
+        # and/or agent state according to your rule.
+
+    @classmethod
+    def decode(cls, encoding):
+        pass
+        # Instantiate and return the rule based on the encoded array.
+
+    def encode(self):
+        pass
+        # Return an encoded JAX array representing the rule.
