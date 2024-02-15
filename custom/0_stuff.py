@@ -53,13 +53,12 @@ env = GymAutoResetWrapper(env)
 # first execution will compile
 # transitions = rollout_fn(jax.random.PRNGKey(0))
 # timestep = jtu.tree_map(print_size, transitions)
-num_steps = 100
-
-
+num_steps = 10000
+print("vmap")
 vmap_rollout = jax.jit(jax.vmap(build_rollout(env, env_params, num_steps=num_steps)))
 rngs = jax.random.split(jax.random.PRNGKey(0), num=2)
 vmap_transitions = vmap_rollout(rngs)
-
+print("vmap_end")
 # timestep = jtu.tree_map(lambda x: x[0][1], vmap_transitions)
 
 # print(f"Transitions shapes: \n, {jtu.tree_map(jnp.shape, vmap_transitions)}")
@@ -67,17 +66,22 @@ vmap_transitions = vmap_rollout(rngs)
 # optionally render the state
 images = []
 instance_to_render = 0
-
+print("herex1")
 for i in trange(num_steps):
     timestep = jtu.tree_map(lambda x: x[instance_to_render][i], vmap_transitions)
     images.append(env.render(env_params, timestep))
-imageio.mimsave(f"example_rollout{instance_to_render}.mp4", images, fps=32, format="mp4")
+    
+    if i == 1000:
+        break
+
+imageio.mimsave(f"example_rollout{instance_to_render}.mp4", images, fps=15, format="mp4")
 
 
-images = []
-instance_to_render = 1
 
-for i in trange(num_steps):
-    timestep = jtu.tree_map(lambda x: x[instance_to_render][i], vmap_transitions)
-    images.append(env.render(env_params, timestep))
-imageio.mimsave(f"example_rollout{instance_to_render}.mp4", images, fps=32, format="mp4")
+# images = []
+# instance_to_render = 1
+# print("herex2")
+# for i in trange(num_steps):
+#     timestep = jtu.tree_map(lambda x: x[instance_to_render][i], vmap_transitions)
+#     images.append(env.render(env_params, timestep))
+# imageio.mimsave(f"example_rollout{instance_to_render}.mp4", images, fps=100, format="mp4")

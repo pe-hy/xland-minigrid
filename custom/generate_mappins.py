@@ -73,8 +73,8 @@ class Colors(struct.PyTreeNode):
 tiles = [attr for attr in Tiles.__dict__.values() if isinstance(attr, int)]
 colors = [attr for attr in Colors.__dict__.values() if isinstance(attr, int)]
 
-id_ranges = [(0, 21), (10000, 10100), (101000, 101100)]
-obstacle_ranges = (11000, 11020)
+id_ranges = [(0, 21), (10000, 10100), (100000, 100100)]
+obstacle_ranges = [(11000, 11032), (101000, 101040)]
 # Exclude certain tiles and colors
 excluded_tiles = [
     Tiles.EMPTY,
@@ -108,11 +108,14 @@ for start, end in id_ranges:
     for id in range(start, end):
         id_to_combination[id] = combinations.pop(0)
 
-cross_products = list(product([11], colors)) # obstacle will only be closed door and some color
-print(cross_products)
+cross_products_1 = list(product([11], colors))  # obstacle will only be closed door and some color
+cross_products_2 = list(product([10], colors))
+cross_products = cross_products_1 + cross_products_2
+print(len(cross_products))
 
-for id in range(obstacle_ranges[0], obstacle_ranges[1]):
-    id_to_combination[id] = cross_products.pop(0)
+for start, end in obstacle_ranges:
+    for id in range(start, end):
+        id_to_combination[id] = cross_products.pop(0)
 
 with open("pkls/id_to_combination.pkl", "wb") as f:
     pickle.dump(id_to_combination, f)

@@ -40,104 +40,107 @@ class UnlockPickUp(Environment):
 
         with open("pkls/id_to_combination.pkl", "rb") as f:
             id_to_combination = pickle.load(f)
-        self.dic = {
-            0: [
-                {
-                    "size": (10, 10),
-                    "walls": [
-                        (0, 0),
-                        (0, 1),
-                        (0, 2),
-                        (0, 3),
-                        (0, 4),
-                        (0, 5),
-                        (0, 6),
-                        (0, 7),
-                        (0, 8),
-                        (0, 9),
-                        (9, 0),
-                        (8, 0),
-                        (7, 0),
-                        (6, 0),
-                        (5, 0),
-                        (4, 0),
-                        (3, 0),
-                        (2, 0),
-                        (1, 0),
-                        (9, 1),
-                        (9, 2),
-                        (9, 3),
-                        (9, 4),
-                        (9, 5),
-                        (9, 6),
-                        (9, 7),
-                        (9, 8),
-                        (9, 9),
-                        (1, 9),
-                        (2, 9),
-                        (3, 9),
-                        (4, 9),
-                        (5, 9),
-                        (6, 9),
-                        (7, 9),
-                        (8, 9),
-                    ],
-                    "atoms": {10: (4, 5), 11: (6, 6), 12: (8, 5), 13: (7, 2)},
-                    "obstacles": {11001: (1, 5)},
-                    "agent": (2, 2),
-                    "win_condition": (14, 15)
-                },
-                {"rules": {(10, 11): 10002, (12, 13): 10001}},
-            ],
-            1: [
-                {
-                    "size": (10, 10),
-                    "walls": [
-                        (0, 0),
-                        (0, 1),
-                        (0, 2),
-                        (0, 3),
-                        (0, 4),
-                        (0, 5),
-                        (0, 6),
-                        (0, 7),
-                        (0, 8),
-                        (0, 9),
-                        (9, 0),
-                        (8, 0),
-                        (7, 0),
-                        (6, 0),
-                        (5, 0),
-                        (4, 0),
-                        (3, 0),
-                        (2, 0),
-                        (1, 0),
-                        (9, 1),
-                        (9, 2),
-                        (9, 3),
-                        (9, 4),
-                        (9, 5),
-                        (9, 6),
-                        (9, 7),
-                        (9, 8),
-                        (9, 9),
-                        (1, 9),
-                        (2, 9),
-                        (3, 9),
-                        (4, 9),
-                        (5, 9),
-                        (6, 9),
-                        (7, 9),
-                        (8, 9),
-                    ],
-                    "atoms": {10: (3, 3), 11: (4, 4), 12: (5, 5), 13: (6, 6)},
-                    "obstacles": {11001: (7, 7)},
-                    "agent": (8, 8),
-                    "win_condition": (14, 15)
-                },
-                {"rules": {(10, 11): 10001, (12, 13): 10002}},
-            ],
-        }
+
+        with open("pkls/dic.pkl", "rb") as f:
+            self.dic = pickle.load(f)
+        # self.dic = {
+        #     0: [
+        #         {
+        #             "size": (10, 10),
+        #             "walls": [
+        #                 (0, 0),
+        #                 (0, 1),
+        #                 (0, 2),
+        #                 (0, 3),
+        #                 (0, 4),
+        #                 (0, 5),
+        #                 (0, 6),
+        #                 (0, 7),
+        #                 (0, 8),
+        #                 (0, 9),
+        #                 (9, 0),
+        #                 (8, 0),
+        #                 (7, 0),
+        #                 (6, 0),
+        #                 (5, 0),
+        #                 (4, 0),
+        #                 (3, 0),
+        #                 (2, 0),
+        #                 (1, 0),
+        #                 (9, 1),
+        #                 (9, 2),
+        #                 (9, 3),
+        #                 (9, 4),
+        #                 (9, 5),
+        #                 (9, 6),
+        #                 (9, 7),
+        #                 (9, 8),
+        #                 (9, 9),
+        #                 (1, 9),
+        #                 (2, 9),
+        #                 (3, 9),
+        #                 (4, 9),
+        #                 (5, 9),
+        #                 (6, 9),
+        #                 (7, 9),
+        #                 (8, 9),
+        #             ],
+        #             "atoms": {10: (4, 5), 11: (6, 6), 12: (8, 5), 13: (7, 2)},
+        #             "obstacles": {11001: (1, 5)},
+        #             "agent": (2, 2),
+        #             "win_condition": (14, 15)
+        #         },
+        #         {"rules": {(10, 11): 10002, (12, 13): 10001}},
+        #     ],
+        #     1: [
+        #         {
+        #             "size": (10, 10),
+        #             "walls": [
+        #                 (0, 0),
+        #                 (0, 1),
+        #                 (0, 2),
+        #                 (0, 3),
+        #                 (0, 4),
+        #                 (0, 5),
+        #                 (0, 6),
+        #                 (0, 7),
+        #                 (0, 8),
+        #                 (0, 9),
+        #                 (9, 0),
+        #                 (8, 0),
+        #                 (7, 0),
+        #                 (6, 0),
+        #                 (5, 0),
+        #                 (4, 0),
+        #                 (3, 0),
+        #                 (2, 0),
+        #                 (1, 0),
+        #                 (9, 1),
+        #                 (9, 2),
+        #                 (9, 3),
+        #                 (9, 4),
+        #                 (9, 5),
+        #                 (9, 6),
+        #                 (9, 7),
+        #                 (9, 8),
+        #                 (9, 9),
+        #                 (1, 9),
+        #                 (2, 9),
+        #                 (3, 9),
+        #                 (4, 9),
+        #                 (5, 9),
+        #                 (6, 9),
+        #                 (7, 9),
+        #                 (8, 9),
+        #             ],
+        #             "atoms": {10: (3, 3), 11: (4, 4), 12: (5, 5), 13: (6, 6)},
+        #             "obstacles": {11001: (7, 7)},
+        #             "agent": (8, 8),
+        #             "win_condition": (14, 15)
+        #         },
+        #         {"rules": {(10, 11): 10001, (12, 13): 10002}},
+        #     ],
+        # }
         self.rules_lst = []
         for k, lst in self.dic.items():
             for d in lst:
@@ -164,9 +167,9 @@ class UnlockPickUp(Environment):
                     g = empty_world(x + 1, y)
                     for walls_xy in v["walls"]:
                         g = g.at[walls_xy[0], walls_xy[1]].set(TILES_REGISTRY[Tiles.WALL, Colors.WHITE])
-                    for atom_id, xy in v["atoms"].items():
+                    for xy, atom_id in v["atoms"].items():
                         g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[atom_id]])
-                    for obstacle_id, xy in v["obstacles"].items():
+                    for xy, obstacle_id in v["obstacles"].items():
                         g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[obstacle_id]])
                     final_1, final_2 = v["win_condition"]
                     g = g.at[x, 0].set(TILES_REGISTRY[id_to_combination[final_1]])
@@ -183,7 +186,7 @@ class UnlockPickUp(Environment):
         return default_params
 
     def time_limit(self, params: EnvParams) -> int:
-        return 8 * params.height**2
+        return 3 * params.height**2
 
     def _generate_problem(self, params: EnvParams, key: jax.Array) -> State:
         key, *keys = jax.random.split(key, num=7)
