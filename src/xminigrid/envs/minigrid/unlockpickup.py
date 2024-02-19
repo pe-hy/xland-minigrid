@@ -151,6 +151,7 @@ class UnlockPickUp(Environment):
                         tile_a = id_to_combination[a_1]
                         tile_b = id_to_combination[a_2]
                         prod_tile = id_to_combination[res]
+                        print(id_to_combination[res])
                         rule = TileNearRule(tile_a=tile_a, tile_b=tile_b, prod_tile=prod_tile)
                         inst_rules.append(rule.encode())
                     self.rules_lst.append(inst_rules)
