@@ -117,7 +117,7 @@ for start, end in obstacle_ranges:
     for id in range(start, end):
         id_to_combination[id] = cross_products.pop(0)
 
-id_to_combination[99999] = (4, 12)
+id_to_combination[99999] = (12, 4)
 
 with open("pkls/id_to_combination.pkl", "wb") as f:
     pickle.dump(id_to_combination, f)
