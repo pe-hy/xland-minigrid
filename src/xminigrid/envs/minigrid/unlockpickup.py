@@ -6,7 +6,7 @@ import jax
 import jax.numpy as jnp
 
 from ...core.constants import TILES_REGISTRY, Colors, Tiles
-from ...core.goals import AgentHoldGoal
+from ...core.goals import TileNearGoal, AgentHoldGoal
 from ...core.grid import coordinates_mask, empty_world, sample_coordinates, sample_direction, two_rooms
 from ...core.rules import EmptyRule, TileNearRule
 from ...environment import Environment, EnvParams
@@ -32,7 +32,6 @@ _allowed_entities = jnp.array(
     )
 )
 _rule_encoding = EmptyRule().encode()[None, ...]
-
 
 class UnlockPickUp(Environment):
     def __init__(self):
@@ -159,6 +158,7 @@ class UnlockPickUp(Environment):
         self.rule_encoding = jnp.stack([jnp.stack(inst_rules, axis=0) for inst_rules in self.rules_lst], axis=0)
         self.arr_agent = []
         self.arr_grid = []
+        self.arr_goals = []
 
         for k, v_list in self.dic.items():
             for v in v_list:
@@ -172,14 +172,21 @@ class UnlockPickUp(Environment):
                         g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[atom_id]])
                     for xy, obstacle_id in v["obstacles"].items():
                         g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[obstacle_id]])
-                    final_1, final_2 = v["win_condition"]
-                    g = g.at[x, 0].set(TILES_REGISTRY[id_to_combination[final_1]])
-                    g = g.at[x, y-1].set(TILES_REGISTRY[id_to_combination[final_2]])
+                    (tup, final_mol), = v["win_condition"].items()
+                    final_1, final_2 = tup
+                    print(final_1, final_2, final_mol)
+                    final_1_tile = TILES_REGISTRY[id_to_combination[final_1]]
+                    final_2_tile = TILES_REGISTRY[id_to_combination[final_2]]
+                    final_mol = TILES_REGISTRY[id_to_combination[final_mol]]
+                    g = g.at[x, 0].set(final_1_tile)
+                    g = g.at[x, y-1].set(final_2_tile)
+                    self.arr_goals.append(AgentHoldGoal(tile=final_mol).encode())
                     self.arr_grid.append(g)
                     self.arr_agent.append(v["agent"])
-                    
+
         self.arr_agent = jnp.array(self.arr_agent)
         self.arr_grid = jnp.stack(self.arr_grid)
+        self.arr_goals = jnp.array(self.arr_goals)
 
     def default_params(self, **kwargs) -> EnvParams:
         default_params = super().default_params(height=6, width=11)
@@ -187,7 +194,7 @@ class UnlockPickUp(Environment):
         return default_params
 
     def time_limit(self, params: EnvParams) -> int:
-        return 3 * params.height**2
+        return 3000 * params.height**2
 
     def _generate_problem(self, params: EnvParams, key: jax.Array) -> State:
         key, *keys = jax.random.split(key, num=7)
@@ -198,9 +205,10 @@ class UnlockPickUp(Environment):
         agent_coords = self.arr_agent[index]
         grid = self.arr_grid[index]
         rules = self.rule_encoding[index]
-        # jax.debug.print("x: {}", key)
+        pickup_obj, block_obj = jax.random.choice(keys[0], _allowed_entities, shape=(2,))
         obj = jax.random.choice(keys[0], _allowed_entities)
         door_color, obj_color = jax.random.choice(keys[1], _allowed_colors, shape=(2,))
+        # jax.debug.print("x: {}", key)
         # door_pos = jax.random.randint(keys[2], shape=(), minval=1, maxval=params.height - 1)
 
         # grid = two_rooms(params.height, params.width)
@@ -214,7 +222,10 @@ class UnlockPickUp(Environment):
         # grid = grid.at[key_coords[0], key_coords[1]].set(TILES_REGISTRY[Tiles.KEY, door_color])
 
         agent = AgentState(position=agent_coords, direction=sample_direction(keys[5]))
-        goal_encoding = AgentHoldGoal(tile=TILES_REGISTRY[obj, obj_color]).encode()
+        goal_encoding = self.arr_goals[index]
+        goal_encoding_old = AgentHoldGoal(tile=TILES_REGISTRY[pickup_obj, block_obj]).encode()
+        jax.debug.print("x: {}", goal_encoding)
+        jax.debug.print("x: {}", goal_encoding_old)
         state = State(
             key=key,
             step_num=jnp.asarray(0),
