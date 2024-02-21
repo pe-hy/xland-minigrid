@@ -1,0 +1,41 @@
+{
+    "name": "Playground",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.black-formatter",
+                "ms-toolsai.jupyter",
+                "ms-python.python",
+                "redhat.vscode-yaml",
+                "GitLab.gitlab-workflow",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "black-formatter.interpreter": [
+                    "/usr/bin/python"
+                ],
+                "editor.formatOnSave": true
+            }
+        }
+    },
+    "containerEnv": {
+        // run `xhost local:root` on host before this container
+        // https://stackoverflow.com/questions/60733288/devcontainer-how-to-make-x-display-work-mount-graphics-inside-docker-in-visual/60896869#60896869
+        "DISPLAY": "unix:0" // X11
+    },
+    "mounts": [
+        // X11
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
+    ],
+    "runArgs": [
+        // "--privileged", // X11
+        "--gpus=all", // remove if you do not use nvidia gpu
+        // TODO adjust to your HW
+        "--shm-size=64gb" // fix torch image dataloader error
+        // "--ipc=host"
+    ]
+}
