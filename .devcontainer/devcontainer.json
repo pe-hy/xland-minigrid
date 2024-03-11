@@ -1,5 +1,5 @@
 {
-    "name": "Playground",
+    "name": "xminigrid",
     "build": {
         "dockerfile": "Dockerfile"
     },
