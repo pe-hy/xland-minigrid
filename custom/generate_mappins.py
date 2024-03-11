@@ -74,7 +74,7 @@ tiles = [attr for attr in Tiles.__dict__.values() if isinstance(attr, int)]
 colors = [attr for attr in Colors.__dict__.values() if isinstance(attr, int)]
 
 id_ranges = [(0, 21), (10000, 10100), (100000, 100100)]
-obstacle_ranges = [(11000, 11032), (101000, 101040)]
+obstacle_ranges = [(11001, 11037), (101001, 101037)]
 # Exclude certain tiles and colors
 excluded_tiles = [
     Tiles.EMPTY,
@@ -108,9 +108,8 @@ for start, end in id_ranges:
     for id in range(start, end):
         id_to_combination[id] = combinations.pop(0)
 
-cross_products_1 = list(product([11], colors))  # obstacle will only be closed door and some color
-cross_products_2 = list(product([10], colors))
-cross_products = cross_products_1 + cross_products_2
+cross_products_1 = list(product([11, 10], colors))  # obstacle will only be closed/locked door and some color
+cross_products = cross_products_1
 print(len(cross_products))
 
 for start, end in obstacle_ranges:

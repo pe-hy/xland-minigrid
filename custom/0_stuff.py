@@ -39,10 +39,6 @@ def build_rollout(env, env_params, num_steps):
     return rollout
 
 
-def print_size(x):
-    print(len(x))
-
-
 env, env_params = xminigrid.make("MiniGrid-MoleculeBuilder")  # env_params will be width and heigth
 # do not forget to use auto reset wrapper!
 env = GymAutoResetWrapper(env)
@@ -66,7 +62,6 @@ print("vmap_end")
 # optionally render the state
 images = []
 instance_to_render = 0
-print("herex1")
 for i in trange(num_steps):
     timestep = jtu.tree_map(lambda x: x[instance_to_render][i], vmap_transitions)
     images.append(env.render(env_params, timestep))

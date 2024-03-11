@@ -13,24 +13,24 @@ from ...environment import Environment, EnvParams
 from ...types import AgentState, EnvCarry, State
 
 # colors like in the original minigrid
-_allowed_colors = jnp.array(
-    (
-        Colors.CYAN,
-        # Colors.MAGENTA,
-        # Colors.LIME,
-        # Colors.TEAL,
-        # Colors.MAROON,
-    )
-)
-_allowed_entities = jnp.array(
-    (
-        # Tiles.DIAMOND,
-        # Tiles.PARALLELOGRAM,
-        # Tiles.PENTAGON,
-        Tiles.CROSS,
-        # Tiles.TRAPEZOID,
-    )
-)
+# _allowed_colors = jnp.array(
+#     (
+#         Colors.CYAN,
+#         # Colors.MAGENTA,
+#         # Colors.LIME,
+#         # Colors.TEAL,
+#         # Colors.MAROON,
+#     )
+# )
+# _allowed_entities = jnp.array(
+#     (
+#         # Tiles.DIAMOND,
+#         # Tiles.PARALLELOGRAM,
+#         # Tiles.PENTAGON,
+#         Tiles.CROSS,
+#         # Tiles.TRAPEZOID,
+#     )
+# )
 
 class MoleculeBuilder(Environment):
     def __init__(self):
@@ -39,106 +39,10 @@ class MoleculeBuilder(Environment):
         with open("pkls/id_to_combination.pkl", "rb") as f:
             id_to_combination = pickle.load(f)
 
-        with open("pkls/dic.pkl", "rb") as f:
+        with open("pkls/dic_1.pkl", "rb") as f:
             self.dic = pickle.load(f)
-        # self.dic = {
-        #     0: [
-        #         {
-        #             "size": (10, 10),
-        #             "walls": [
-        #                 (0, 0),
-        #                 (0, 1),
-        #                 (0, 2),
-        #                 (0, 3),
-        #                 (0, 4),
-        #                 (0, 5),
-        #                 (0, 6),
-        #                 (0, 7),
-        #                 (0, 8),
-        #                 (0, 9),
-        #                 (9, 0),
-        #                 (8, 0),
-        #                 (7, 0),
-        #                 (6, 0),
-        #                 (5, 0),
-        #                 (4, 0),
-        #                 (3, 0),
-        #                 (2, 0),
-        #                 (1, 0),
-        #                 (9, 1),
-        #                 (9, 2),
-        #                 (9, 3),
-        #                 (9, 4),
-        #                 (9, 5),
-        #                 (9, 6),
-        #                 (9, 7),
-        #                 (9, 8),
-        #                 (9, 9),
-        #                 (1, 9),
-        #                 (2, 9),
-        #                 (3, 9),
-        #                 (4, 9),
-        #                 (5, 9),
-        #                 (6, 9),
-        #                 (7, 9),
-        #                 (8, 9),
-        #             ],
-        #             "atoms": {10: (4, 5), 11: (6, 6), 12: (8, 5), 13: (7, 2)},
-        #             "obstacles": {11001: (1, 5)},
-        #             "agent": (2, 2),
-        #             "win_condition": (14, 15)
-        #         },
-        #         {"rules": {(10, 11): 10002, (12, 13): 10001}},
-        #     ],
-        #     1: [
-        #         {
-        #             "size": (10, 10),
-        #             "walls": [
-        #                 (0, 0),
-        #                 (0, 1),
-        #                 (0, 2),
-        #                 (0, 3),
-        #                 (0, 4),
-        #                 (0, 5),
-        #                 (0, 6),
-        #                 (0, 7),
-        #                 (0, 8),
-        #                 (0, 9),
-        #                 (9, 0),
-        #                 (8, 0),
-        #                 (7, 0),
-        #                 (6, 0),
-        #                 (5, 0),
-        #                 (4, 0),
-        #                 (3, 0),
-        #                 (2, 0),
-        #                 (1, 0),
-        #                 (9, 1),
-        #                 (9, 2),
-        #                 (9, 3),
-        #                 (9, 4),
-        #                 (9, 5),
-        #                 (9, 6),
-        #                 (9, 7),
-        #                 (9, 8),
-        #                 (9, 9),
-        #                 (1, 9),
-        #                 (2, 9),
-        #                 (3, 9),
-        #                 (4, 9),
-        #                 (5, 9),
-        #                 (6, 9),
-        #                 (7, 9),
-        #                 (8, 9),
-        #             ],
-        #             "atoms": {10: (3, 3), 11: (4, 4), 12: (5, 5), 13: (6, 6)},
-        #             "obstacles": {11001: (7, 7)},
-        #             "agent": (8, 8),
-        #             "win_condition": (14, 15)
-        #         },
-        #         {"rules": {(10, 11): 10001, (12, 13): 10002}},
-        #     ],
-        # }
+        self.dic = {k: self.dic[k] for k in list(self.dic)[:10]}
+        print(self.dic[1])
         self.rules_lst = []
         for k, lst in self.dic.items():
             for d in lst:
@@ -149,7 +53,6 @@ class MoleculeBuilder(Environment):
                         tile_a = id_to_combination[a_1]
                         tile_b = id_to_combination[a_2]
                         prod_tile = id_to_combination[res]
-                        print(id_to_combination[res])
                         rule = TileNearRule(tile_a=tile_a, tile_b=tile_b, prod_tile=prod_tile)
                         inst_rules.append(rule.encode())
                     self.rules_lst.append(inst_rules)
@@ -173,7 +76,6 @@ class MoleculeBuilder(Environment):
                         g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[obstacle_id]])
                     (tup, final_mol), = v["win_condition"].items()
                     final_1, final_2 = tup
-                    print(final_1, final_2, final_mol)
                     final_1_tile = TILES_REGISTRY[id_to_combination[final_1]]
                     final_2_tile = TILES_REGISTRY[id_to_combination[final_2]]
                     final_mol = TILES_REGISTRY[id_to_combination[final_mol]]
@@ -182,7 +84,7 @@ class MoleculeBuilder(Environment):
                     self.arr_goals.append(AgentHoldGoal(tile=final_mol).encode())
                     self.arr_grid.append(g)
                     self.arr_agent.append(v["agent"])
-
+        print(self.arr_agent)
         self.arr_agent = jnp.array(self.arr_agent)
         self.arr_grid = jnp.stack(self.arr_grid)
         self.arr_goals = jnp.array(self.arr_goals)
@@ -204,9 +106,9 @@ class MoleculeBuilder(Environment):
         agent_coords = self.arr_agent[index]
         grid = self.arr_grid[index]
         rules = self.rule_encoding[index]
-        pickup_obj, block_obj = jax.random.choice(keys[0], _allowed_entities, shape=(2,))
-        obj = jax.random.choice(keys[0], _allowed_entities)
-        door_color, obj_color = jax.random.choice(keys[1], _allowed_colors, shape=(2,))
+        # pickup_obj, block_obj = jax.random.choice(keys[0], _allowed_entities, shape=(2,))
+        # obj = jax.random.choice(keys[0], _allowed_entities)
+        # door_color, obj_color = jax.random.choice(keys[1], _allowed_colors, shape=(2,))
         # jax.debug.print("x: {}", key)
         # door_pos = jax.random.randint(keys[2], shape=(), minval=1, maxval=params.height - 1)
 
@@ -222,9 +124,9 @@ class MoleculeBuilder(Environment):
 
         agent = AgentState(position=agent_coords, direction=sample_direction(keys[5]))
         goal_encoding = self.arr_goals[index]
-        goal_encoding_old = AgentHoldGoal(tile=TILES_REGISTRY[pickup_obj, block_obj]).encode()
-        jax.debug.print("x: {}", goal_encoding)
-        jax.debug.print("x: {}", goal_encoding_old)
+        # goal_encoding_old = AgentHoldGoal(tile=TILES_REGISTRY[pickup_obj, block_obj]).encode()
+        # jax.debug.print("x: {}", goal_encoding)
+        # jax.debug.print("x: {}", goal_encoding_old)
         state = State(
             key=key,
             step_num=jnp.asarray(0),
