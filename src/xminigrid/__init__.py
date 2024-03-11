@@ -360,3 +360,9 @@ register(
     id="MiniGrid-UnlockPickUp",
     entry_point="xminigrid.envs.minigrid.unlockpickup:UnlockPickUp",
 )
+
+# MoleculeBuilder
+register(
+    id='MiniGrid-MoleculeBuilder',
+    entry_point='xminigrid.envs.minigrid.moleculebuilder:MoleculeBuilder',
+)

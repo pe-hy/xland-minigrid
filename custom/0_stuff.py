@@ -43,7 +43,7 @@ def print_size(x):
     print(len(x))
 
 
-env, env_params = xminigrid.make("MiniGrid-UnlockPickUp")  # env_params will be width and heigth
+env, env_params = xminigrid.make("MiniGrid-MoleculeBuilder")  # env_params will be width and heigth
 # do not forget to use auto reset wrapper!
 env = GymAutoResetWrapper(env)
 
