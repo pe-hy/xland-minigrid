@@ -11,40 +11,17 @@ from ...core.grid import coordinates_mask, empty_world, sample_coordinates, samp
 from ...core.rules import EmptyRule, TileNearRule
 from ...environment import Environment, EnvParams
 from ...types import AgentState, EnvCarry, State
-
-# colors like in the original minigrid
-# _allowed_colors = jnp.array(
-#     (
-#         Colors.CYAN,
-#         # Colors.MAGENTA,
-#         # Colors.LIME,
-#         # Colors.TEAL,
-#         # Colors.MAROON,
-#     )
-# )
-# _allowed_entities = jnp.array(
-#     (
-#         # Tiles.DIAMOND,
-#         # Tiles.PARALLELOGRAM,
-#         # Tiles.PENTAGON,
-#         Tiles.CROSS,
-#         # Tiles.TRAPEZOID,
-#     )
-# )
+from tqdm import tqdm
 
 class MoleculeBuilder(Environment):
     def __init__(self):
         super().__init__()
-
         with open("pkls/id_to_combination.pkl", "rb") as f:
             id_to_combination = pickle.load(f)
-
-        with open("pkls/dic_1.pkl", "rb") as f:
-            self.dic = pickle.load(f)
-        self.dic = {k: self.dic[k] for k in list(self.dic)[:10]}
-        print(self.dic[1])
+        with open("envs/dic_2.pkl", "rb") as f:
+            self.env = pickle.load(f)
         self.rules_lst = []
-        for k, lst in self.dic.items():
+        for k, lst in tqdm(self.dic.items()):
             for d in lst:
                 if "rules" in d:
                     inst_rules = []
@@ -55,14 +32,14 @@ class MoleculeBuilder(Environment):
                         prod_tile = id_to_combination[res]
                         rule = TileNearRule(tile_a=tile_a, tile_b=tile_b, prod_tile=prod_tile)
                         inst_rules.append(rule.encode())
-                    self.rules_lst.append(inst_rules)
+                    self.rules_lst.append(jnp.stack(inst_rules))
 
-        self.rule_encoding = jnp.stack([jnp.stack(inst_rules, axis=0) for inst_rules in self.rules_lst], axis=0)
+        self.rule_encoding = jnp.array([inst_rules for inst_rules in self.rules_lst])
+        print(self.rule_encoding)
         self.arr_agent = []
         self.arr_grid = []
         self.arr_goals = []
-
-        for k, v_list in self.dic.items():
+        for k, v_list in tqdm(self.dic.items()):
             for v in v_list:
                 if "size" in v:
                     x = v["size"][0]
@@ -84,10 +61,11 @@ class MoleculeBuilder(Environment):
                     self.arr_goals.append(AgentHoldGoal(tile=final_mol).encode())
                     self.arr_grid.append(g)
                     self.arr_agent.append(v["agent"])
-        print(self.arr_agent)
+        print(len(self.arr_agent))
         self.arr_agent = jnp.array(self.arr_agent)
         self.arr_grid = jnp.stack(self.arr_grid)
         self.arr_goals = jnp.array(self.arr_goals)
+        print(len(self.arr_goals))
 
     def default_params(self, **kwargs) -> EnvParams:
         default_params = super().default_params(height=6, width=11)
@@ -95,11 +73,10 @@ class MoleculeBuilder(Environment):
         return default_params
 
     def time_limit(self, params: EnvParams) -> int:
-        return 3000 * params.height**2
+        return 1000
 
     def _generate_problem(self, params: EnvParams, key: jax.Array) -> State:
         key, *keys = jax.random.split(key, num=7)
-
         # agent_coords, grid = random.choice(self.agent_to_grid)
         # print(agent_coords)
         index = jax.random.choice(keys[2], jnp.arange(self.arr_agent.shape[0]))
