@@ -13,7 +13,7 @@ from xminigrid.wrappers import GymAutoResetWrapper
 jax.config.update("jax_threefry_partitionable", True)
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--env-id", type=str, default="MiniGrid-Empty-16x16")
+parser.add_argument("--env-id", type=str, default="MiniGrid-MoleculeBuilder")
 parser.add_argument("--benchmark-id", type=str, default="Trivial")
 parser.add_argument("--timesteps", type=int, default=1000)
 parser.add_argument("--num-envs", type=int, default=8192)
@@ -26,8 +26,8 @@ def build_benchmark(env_id: str, num_envs: int, timesteps: int, benchmark_id: Op
     env = GymAutoResetWrapper(env)
     # choose XLand benchmark if needed
     # if "XLand-MiniGrid" in env_id and benchmark_id is not None:
-        #ruleset = load_benchmark(benchmark_id).sample_ruleset(jax.random.PRNGKey(0))
-        #env_params = env_params.replace(ruleset=ruleset)
+    # ruleset = load_benchmark(benchmark_id).sample_ruleset(jax.random.PRNGKey(0))
+    # env_params = env_params.replace(ruleset=ruleset)
 
     def benchmark_fn(key):
         def _body_fn(timestep, action):

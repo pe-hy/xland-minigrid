@@ -4,68 +4,88 @@ import random
 
 import jax
 import jax.numpy as jnp
-
+import timeit
 from ...core.constants import TILES_REGISTRY, Colors, Tiles
 from ...core.goals import TileNearGoal, AgentHoldGoal
-from ...core.grid import coordinates_mask, empty_world, sample_coordinates, sample_direction, two_rooms
+from ...core.grid import (
+    coordinates_mask,
+    empty_world,
+    sample_coordinates,
+    sample_direction,
+    two_rooms,
+)
 from ...core.rules import EmptyRule, TileNearRule
 from ...environment import Environment, EnvParams
 from ...types import AgentState, EnvCarry, State
 from tqdm import tqdm
 
+
 class MoleculeBuilder(Environment):
     def __init__(self):
         super().__init__()
+        start_time = timeit.default_timer()
         with open("pkls/id_to_combination.pkl", "rb") as f:
             id_to_combination = pickle.load(f)
-        with open("envs/dic_2.pkl", "rb") as f:
-            self.env = pickle.load(f)
+        with open("envs/env_easy.pkl", "rb") as f:
+            self.dic = pickle.load(f)
+        self.dic = {k: self.dic[k] for k in list(self.dic)[:128]}
         self.rules_lst = []
-        for k, lst in tqdm(self.dic.items()):
+        for k, lst in self.dic.items():
             for d in lst:
-                if "rules" in d:
+                if "rules" in d:  # TODO: limit rules benchmark
                     inst_rules = []
                     for rule, res in d["rules"].items():
                         a_1, a_2 = rule
                         tile_a = id_to_combination[a_1]
                         tile_b = id_to_combination[a_2]
                         prod_tile = id_to_combination[res]
-                        rule = TileNearRule(tile_a=tile_a, tile_b=tile_b, prod_tile=prod_tile)
+                        rule = TileNearRule(
+                            tile_a=tile_a, tile_b=tile_b, prod_tile=prod_tile
+                        )
                         inst_rules.append(rule.encode())
+                        if len(inst_rules) == 9:
+                            break
                     self.rules_lst.append(jnp.stack(inst_rules))
 
         self.rule_encoding = jnp.array([inst_rules for inst_rules in self.rules_lst])
-        print(self.rule_encoding)
         self.arr_agent = []
         self.arr_grid = []
         self.arr_goals = []
-        for k, v_list in tqdm(self.dic.items()):
+        for k, v_list in self.dic.items():
             for v in v_list:
                 if "size" in v:
                     x = v["size"][0]
                     y = v["size"][1]
                     g = empty_world(x + 1, y)
                     for walls_xy in v["walls"]:
-                        g = g.at[walls_xy[0], walls_xy[1]].set(TILES_REGISTRY[Tiles.WALL, Colors.WHITE])
+                        g = g.at[walls_xy[0], walls_xy[1]].set(
+                            TILES_REGISTRY[Tiles.WALL, Colors.WHITE]
+                        )
                     for xy, atom_id in v["atoms"].items():
-                        g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[atom_id]])
+                        g = g.at[xy[0], xy[1]].set(
+                            TILES_REGISTRY[id_to_combination[atom_id]]
+                        )
                     for xy, obstacle_id in v["obstacles"].items():
-                        g = g.at[xy[0], xy[1]].set(TILES_REGISTRY[id_to_combination[obstacle_id]])
-                    (tup, final_mol), = v["win_condition"].items()
+                        g = g.at[xy[0], xy[1]].set(
+                            TILES_REGISTRY[id_to_combination[obstacle_id]]
+                        )
+                    ((tup, final_mol),) = v["win_condition"].items()
                     final_1, final_2 = tup
                     final_1_tile = TILES_REGISTRY[id_to_combination[final_1]]
                     final_2_tile = TILES_REGISTRY[id_to_combination[final_2]]
                     final_mol = TILES_REGISTRY[id_to_combination[final_mol]]
                     g = g.at[x, 0].set(final_1_tile)
-                    g = g.at[x, y-1].set(final_2_tile)
+                    g = g.at[x, y - 1].set(final_2_tile)
                     self.arr_goals.append(AgentHoldGoal(tile=final_mol).encode())
                     self.arr_grid.append(g)
                     self.arr_agent.append(v["agent"])
-        print(len(self.arr_agent))
+
         self.arr_agent = jnp.array(self.arr_agent)
         self.arr_grid = jnp.stack(self.arr_grid)
         self.arr_goals = jnp.array(self.arr_goals)
-        print(len(self.arr_goals))
+
+        elapsed = timeit.default_timer() - start_time
+        print(f"init done {elapsed=}")
 
     def default_params(self, **kwargs) -> EnvParams:
         default_params = super().default_params(height=6, width=11)
@@ -104,6 +124,7 @@ class MoleculeBuilder(Environment):
         # goal_encoding_old = AgentHoldGoal(tile=TILES_REGISTRY[pickup_obj, block_obj]).encode()
         # jax.debug.print("x: {}", goal_encoding)
         # jax.debug.print("x: {}", goal_encoding_old)
+        print(rules.shape)
         state = State(
             key=key,
             step_num=jnp.asarray(0),
