@@ -1,20 +1,15 @@
-import os
 import pickle
-import random
 
 import jax
 import jax.numpy as jnp
 import timeit
 from ...core.constants import TILES_REGISTRY, Colors, Tiles
-from ...core.goals import TileNearGoal, AgentHoldGoal
+from ...core.goals import AgentHoldGoal
 from ...core.grid import (
-    coordinates_mask,
     empty_world,
-    sample_coordinates,
     sample_direction,
-    two_rooms,
 )
-from ...core.rules import EmptyRule, TileNearRule
+from ...core.rules import TileNearRule
 from ...environment import Environment, EnvParams
 from ...types import AgentState, EnvCarry, State
 from tqdm import tqdm
@@ -26,8 +21,8 @@ class MoleculeBuilder(Environment):
         start_time = timeit.default_timer()
         with open("pkls/id_to_combination.pkl", "rb") as f:
             id_to_combination = pickle.load(f)
-        with open("envs/env_easy.pkl", "rb") as f:
-            self.dic = pickle.load(f)
+        # with open("envs/env_easy.pkl", "rb") as f:
+        #     self.dic = pickle.load(f)
         self.dic = {k: self.dic[k] for k in list(self.dic)[:128]}
         self.rules_lst = []
         for k, lst in self.dic.items():
@@ -135,3 +130,17 @@ class MoleculeBuilder(Environment):
             carry=EnvCarry(),
         )
         return state
+
+
+class MoleculeBuilderEasy(MoleculeBuilder):
+    def __init__(self):
+        with open("envs/env_easy.pkl", "rb") as f:
+            self.dic = pickle.load(f)
+        super().__init__()
+
+
+class MoleculeBuilderHard(MoleculeBuilder):
+    def __init__(self):
+        with open("envs/env_hard.pkl", "rb") as f:
+            self.dic = pickle.load(f)
+        super().__init__()

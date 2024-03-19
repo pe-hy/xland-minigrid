@@ -210,7 +210,8 @@ register(
 
 # BlockedUnlockPickUp
 register(
-    id="MiniGrid-BlockedUnlockPickUp", entry_point="xminigrid.envs.minigrid.blockedunlockpickup:BlockedUnlockPickUp"
+    id="MiniGrid-BlockedUnlockPickUp",
+    entry_point="xminigrid.envs.minigrid.blockedunlockpickup:BlockedUnlockPickUp",
 )
 
 # DoorKey
@@ -361,8 +362,19 @@ register(
     entry_point="xminigrid.envs.minigrid.unlockpickup:UnlockPickUp",
 )
 
+# # MoleculeBuilder
+# register(
+#     id="MiniGrid-MoleculeBuilder",
+#     entry_point="xminigrid.envs.minigrid.moleculebuilder:MoleculeBuilder",
+# )
+
 # MoleculeBuilder
 register(
-    id='MiniGrid-MoleculeBuilder',
-    entry_point='xminigrid.envs.minigrid.moleculebuilder:MoleculeBuilder',
+    id="MiniGrid-MoleculeBuilder-Easy",
+    entry_point="xminigrid.envs.minigrid.moleculebuilder:MoleculeBuilderEasy",
+)
+
+register(
+    id="MiniGrid-MoleculeBuilder-Hard",
+    entry_point="xminigrid.envs.minigrid.moleculebuilder:MoleculeBuilderHard",
 )

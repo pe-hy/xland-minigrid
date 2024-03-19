@@ -12,9 +12,12 @@ from tqdm.auto import tqdm
 from xminigrid import load_benchmark
 from xminigrid.wrappers import GymAutoResetWrapper
 
+import json
+
 jax.config.update("jax_threefry_partitionable", True)
 
-NUM_ENVS = (128, 256, 512, 1024, 2048, 4096, 8192, 16384)
+# NUM_ENVS = (128, 256, 512, 1024, 2048, 4096, 8192, 16384)
+NUM_ENVS = (4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--benchmark-id", type=str, default="trivial-1m")
@@ -70,7 +73,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print("Num devices:", num_devices)
 
-    environments = xminigrid.registered_environments()
+    # environments = xminigrid.registered_environments()
+    environments = ['MiniGrid-UnlockPickUp', 'MiniGrid-MoleculeBuilder-Easy', 'MiniGrid-MoleculeBuilder-Hard']
     summary = {}
     for num_envs in tqdm(NUM_ENVS, desc="Benchmark", leave=False):
         results = {}
@@ -89,4 +93,6 @@ if __name__ == "__main__":
             results[env_id] = int(pmap_fps)
         summary[num_envs] = results
 
-    pprint.pprint(summary)
+        with open("benchmark.json", "w") as f:
+            json.dump(summary, f)
+    # pprint.pprint(summary)
